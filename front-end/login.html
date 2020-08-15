@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>后台登录</title>
+    <meta name="renderer" content="webkit|ie-comp|ie-stand">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="./css/font.css">
+    <link rel="stylesheet" href="./css/xadmin.css">
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="./lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="./js/xadmin.js"></script>
+
+</head>
+
+<body class="login-bg">
+
+    <div class="login layui-anim layui-anim-up">
+        <div class="message">HZ-2004学员管理系统</div>
+        <div id="darkbannerwrap"></div>
+
+        <div class="layui-form">
+            <input name="username" id="username" placeholder="用户名" type="text" class="layui-input">
+            <hr class="hr15">
+            <input name="password" id="password" placeholder="密码" type="password" class="layui-input">
+            <hr class="hr15">
+            <input value="登录" style="width:100%;" type="button" class="btn">
+            <hr class="hr20">
+        </div>
+    </div>
+
+
+    <!--需要引入一个rsa算法 -->
+    <script src="https://cdn.bootcss.com/jsencrypt/3.0.0-beta.1/jsencrypt.min.js"></script>
+
+    <script>
+        let publicKey = ""; //用于储存公钥
+        window.onload = () => {
+            if (sessionStorage.getItem("key")) {
+                publicKey = sessionStorage.getItem("key"); //如果公钥已经获取了，不需要重复获取，直接从sessionstorage通过键名获取
+            } else {
+                // 获取公钥
+                $.ajax({
+                    url: 'http://127.0.0.1:3000/api/admins/key',
+                    type: 'GET'
+                }).done((res) => {
+                    console.log(res);
+                    publicKey = res.publicKey;
+                    console.log(publicKey); //显示公钥内容
+                })
+                sessionStorage.setItem("key", publicKey); //将公钥储存在sessionstorage里
+            }
+        }
+
+        $('.btn').on('click', () => {
+            //加密的固定写法
+            let encrypt = new JSEncrypt();
+            encrypt.setPublicKey(publicKey); //使用获取的公钥
+            //需要加密的账号密码,要字符串形式，所以使用json.stringify转字符串
+            const userInfo = JSON.stringify({
+                username: $('#username').val(),
+                password: $('#password').val()
+            });
+            const encryptKey = encrypt.encrypt(userInfo); //使用公钥加密，得到密文
+
+            $.ajax({
+                url: 'http://127.0.0.1:3000/api/admins/login',
+                data: {
+                    loginInfo: encryptKey //传输加密后的密文
+                },
+                type: 'POST'
+            }).done((res) => {
+                if (res.status !== 0) {
+                    alert(res.msg)
+                } else {
+                    console.log(res);
+                    //登录成功，转到首页
+                    location.href = "index.html";
+                }
+            })
+        })
+    </script>
+</body>
+
+</html>

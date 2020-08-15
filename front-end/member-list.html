@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>欢迎页面-X-admin2.0</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="./css/font.css">
+    <link rel="stylesheet" href="./css/xadmin.css">
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript" src="./lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="./js/xadmin.js"></script>
+</head>
+
+<body class="layui-anim layui-anim-up">
+    <div class="x-nav">
+        <span class="layui-breadcrumb">
+        <a href="">首页</a>
+        <a href="">演示</a>
+        <a>
+          <cite>导航元素</cite></a>
+      </span>
+        <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" href="javascript:location.replace(location.href);" title="刷新">
+            <i class="layui-icon" style="line-height:30px">ဂ</i></a>
+    </div>
+    <div class="x-body">
+        <div class="layui-row">
+            <form class="layui-form layui-col-md12 x-so">
+                <input class="layui-input" placeholder="开始日" name="start" id="start">
+                <input class="layui-input" placeholder="截止日" name="end" id="end">
+                <input type="text" name="username" placeholder="请输入用户名" autocomplete="off" class="layui-input" id="nametext">
+                <div class="btn" style="display: inline-block;height: 38px;line-height: 38px;padding: 0 18px;background-color: #009688;
+                color: #fff;text-align: center;font-size: 14px;border: none;border-radius: 2px;cursor: pointer;">
+                    <!-- <button class="layui-btn"><i class="layui-icon">&#xe615;</i></button> -->
+                    <i class="layui-icon">&#xe615;</i>
+                </div>
+
+            </form>
+        </div>
+        <xblock>
+            <button class="layui-btn layui-btn-danger" onclick="delAll(this)"><i class="layui-icon"></i>批量删除</button>
+            <button class="layui-btn" onclick="x_admin_show('添加用户','./member-add.html',600,400)"><i class="layui-icon"></i>添加</button>
+            <span class="x-right" style="line-height:40px">共有数据：88 条</span>
+        </xblock>
+        <table class="layui-table">
+            <thead>
+                <tr>
+                    <th>
+                        <div class="layui-unselect header layui-form-checkbox" lay-skin="primary"><i class="layui-icon">&#xe605;</i></div>
+                    </th>
+                    <th>头像</th>
+                    <th>用户名</th>
+                    <th>性别</th>
+                    <th>手机</th>
+                    <th>邮箱</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+
+
+                <!-- <tr>
+                    <td>
+                        <div class="layui-unselect layui-form-checkbox" lay-skin="primary" data-id='2'><i class="layui-icon">&#xe605;</i></div>
+                    </td>
+                    <td>1</td>
+                    <td>小明</td>
+                    <td>男</td>
+                    <td>13000000000</td>
+                    <td>admin@mail.com</td>
+                    <td>北京市 海淀区</td>
+                    <td>2017-01-01 11:11:42</td>
+                    <td class="td-status">
+                        <span class="layui-btn layui-btn-normal layui-btn-mini">已启用</span></td>
+                    <td class="td-manage">
+                        <a onclick="member_stop(this,'10001')" href="javascript:;" title="启用">
+                            <i class="layui-icon">&#xe601;</i>
+                        </a>
+                        <a title="编辑" onclick="x_admin_show('编辑','member-edit.html',600,400)" href="javascript:;">
+                            <i class="layui-icon">&#xe642;</i>
+                        </a>
+                        <a onclick="x_admin_show('修改密码','member-password.html',600,400)" title="修改密码" href="javascript:;">
+                            <i class="layui-icon">&#xe631;</i>
+                        </a>
+                        <a title="删除" onclick="member_del(this,'要删除的id')" href="javascript:;">
+                            <i class="layui-icon">&#xe640;</i>
+                        </a>
+                    </td>
+                </tr> -->
+            </tbody>
+        </table>
+        <div class="page">
+            <div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        //默认为第一页
+        let page = 1;
+        //限制每页展示3个学员信息
+        let count = 3;
+        //储存总页数
+        let pagesum = null;
+        //需要查找的内容
+        let seldata = null;
+
+        //封装渲染学生列表
+        function listrender() {
+            let liststr = "";
+            $.ajax({
+                url: 'http://127.0.0.1:3000/api/students/list',
+                type: 'POST',
+                data: {
+                    page, //属性名和变量名相同可以就写一个
+                    count,
+                    user: seldata
+                }
+            }).done((res) => {
+                //由后端传输的总数据条数除以每页限制的条数，向上取整为总页码
+                pagesum = Math.ceil(res.total / count);
+                //渲染总数据条数
+                $(".x-right").html("共有" + res.total + "条数据");
+                //解构赋值，获取res内的result属性值
+                const {
+                    result
+                } = res;
+                // console.log(res);
+                $.each(result, function(index, value) {
+                    liststr += `
+                  <tr>
+                    <td>
+                        <div class="layui-unselect layui-form-checkbox " lay-skin="primary" data-id='2'><i class="layui-icon " >&#xe605;</i></div>
+                    </td>
+                    <td><img src="http://127.0.0.1:3000${value.imgurl}"  style="height:20px;width:20px;"></td>
+                    <td>${value.name}</td>
+                    <td>${value.sex}</td>
+                    <td>${value.phone}</td>
+                    <td>${value.email}</td>
+                    <td class="td-manage">
+                        <a title="编辑" onclick="updatabtn(this)" href="javascript:;" aaa='${JSON.stringify(value)}'>
+                            <i class="layui-icon">&#xe642;</i>
+                        </a>
+                        <a title="删除" onclick="delbtn(this)" href="javascript:;" b='${value._id}'>
+                            <i class="layui-icon">&#xe640;</i>
+                        </a>
+                    </td>
+                </tr>
+                  `
+                })
+                $("tbody").html(liststr);
+
+                //根据页码展示分页按钮
+                let pagestr = '<a class="prev" href="javascript:;">&lt;&lt;</a>';
+                for (let i = 0; i < +pagesum; i++) {
+                    pagestr += `
+                <a class="num" href="javascript:;">${i+1}</a>
+            `
+                }
+                pagestr += '<a class="next" href="javascript:;">&gt;&gt;</a>'
+                $(".page div").html(pagestr);
+            })
+        }
+
+        //查找列表
+        $(".btn").on("click", function() {
+            seldata = $("#nametext").val(); //获取要查找的内容
+            console.log(seldata)
+            listrender();
+        })
+
+        //批量删除封装函数
+        function delAll(e) {}
+
+        //点击页码,利用事件委托，获取渲染出来的数据
+        $(".page div").on("click", function(e) {
+            if ($(e.target).is(".num")) {
+                page = $(e.target).html(); //获取被点击的页码
+                $(e.target).addClass("current");
+                listrender(); //页码改变，再次调用列表函数
+            }
+        });
+
+        //点击向前,利用事件委托，获取渲染出来的数据
+        $(".page div").on("click", function(e) {
+            if ($(e.target).is(".prev")) {
+                if (page != 1) {
+                    page = page - 1; //页码变为原有的减一
+                } else {
+                    page = 1;
+                }
+                $(e.target).addClass("current");
+                listrender(); //页码改变，再次调用列表函数
+            }
+        });
+
+        //点击向后,利用事件委托，获取渲染出来的数据
+        $(".page div").on("click", function(e) {
+            if ($(e.target).is(".next")) {
+                if (page != pagesum) {
+                    page = page + 1; //页码变为原有的加一
+                } else {
+                    page = pagesum;
+                }
+                $(e.target).addClass("current");
+                listrender(); //页码改变，再次调用列表函数
+            }
+        });
+
+
+        //页面最后加载
+        window.onload = () => {
+            //调用函数进行列表渲染
+            listrender();
+        }
+
+
+        //点击编辑按钮
+        function updatabtn(ele) {
+            x_admin_show('编辑', 'member-edit.html', 600, 400);
+            let studentdata = $(ele).attr("aaa"); //获取该行的全部数据，转为对象的形式
+            sessionStorage.setItem("studentdata", studentdata); //将数据存入sessionStorage，因为编辑页面在其他页面，该页面的变量其他页面无法获取
+        }
+
+        //点击删除按钮
+        function delbtn(ele) {
+            // member_del(this, '要删除的id');
+            let studentid = $(ele).attr("b"); //获取该行的学生的id主键，用于服务器端查找删除
+            $.ajax({
+                url: "http://127.0.0.1:3000/api/students/del",
+                data: {
+                    id: studentid
+                },
+                type: "POST"
+            }).done((res) => {
+                if (res.status === 0) {
+                    console.log(res.msg);
+                    listrender(); //删除该数据后，重新渲染列表
+                }
+            })
+        }
+    </script>
+
+</body>
+
+</html>
